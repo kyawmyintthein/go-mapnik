@@ -16,7 +16,7 @@ type Generator struct {
 
 func ensureDirExists(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.Mkdir(path, 0755)
+		os.MkdirAll(path, 0755)
 	}
 }
 
@@ -50,11 +50,11 @@ func (g *Generator) Run(lowLeft, upRight mapnik.Coord, minZ, maxZ uint64, name s
 		px0 := fromLLtoPixel(ll0, z)
 		px1 := fromLLtoPixel(ll1, z)
 
-		ensureDirExists(fmt.Sprintf("%d", z))
+		ensureDirExists(fmt.Sprintf("%s/%d", g.TileDir,z))
 		for x := uint64(px0[0] / 256.0); x <= uint64(px1[0]/256.0); x++ {
-			ensureDirExists(fmt.Sprintf("%d/%d", z, x))
+			ensureDirExists(fmt.Sprintf("%s/%d/%d", g.TileDir, z, x))
 			for y := uint64(px0[1] / 256.0); y <= uint64(px1[1]/256.0); y++ {
-				c <- TileCoord{x, y, z, false, ""}
+				c <- TileCoord{x, y, z, false, "", g.TileDir}
 			}
 		}
 	}

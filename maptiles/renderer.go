@@ -11,10 +11,11 @@ type TileCoord struct {
 	X, Y, Zoom uint64
 	Tms        bool
 	Layer      string
+	TileDir	   string
 }
 
 func (c TileCoord) OSMFilename() string {
-	return fmt.Sprintf("%d/%d/%d.png", c.Zoom, c.X, c.Y)
+	return fmt.Sprintf("%s/%d/%d/%d.png", c.TileDir, c.Zoom, c.X, c.Y)
 }
 
 type TileFetchResult struct {
