@@ -11,7 +11,7 @@ type TileCoord struct {
 	X, Y, Zoom uint64
 	Tms        bool
 	Layer      string
-	TileDir	   string
+	TileDir    string
 }
 
 func (c TileCoord) OSMFilename() string {
@@ -97,11 +97,9 @@ func (t *TileRenderer) RenderTileZXY(zoom, x, y uint64) ([]byte, error) {
 	c0 := t.mp.Forward(mapnik.Coord{l0[0], l0[1]})
 	c1 := t.mp.Forward(mapnik.Coord{l1[0], l1[1]})
 
-
 	// Bounding box for the Tile
-	// t.m.ZoomAll()
-	t.m.ZoomToMinMax(c0.X, c0.Y, c1.X, c1.Y)
 	t.m.Resize(256, 256)
+	t.m.ZoomToMinMax(c0.X, c0.Y, c1.X, c1.Y)
 	t.m.SetBufferSize(128)
 
 	blob, err := t.m.RenderToMemoryPng()

@@ -5,7 +5,6 @@ import (
 	"github.com/kyawmyintthein/go-mapnik/mapnik"
 	"io/ioutil"
 	"log"
-	"math"
 	"os"
 )
 
@@ -27,10 +26,9 @@ func (g *Generator) Run(lowLeft, upRight mapnik.Coord, minZ, maxZ uint64, name s
 	c := make(chan TileCoord)
 	q := make(chan bool)
 
-	log.Println("starting job", name)
+	log.Println("Starting job", name)
 
-	// i := uint64(23473824)
-	// newGoogleProjection(maxZ + i)
+	ensureDirExists(g.TileDir)
 
 	for i := 0; i < g.Threads; i++ {
 		go func(id int, ctc <-chan TileCoord, q chan bool) {
@@ -48,27 +46,20 @@ func (g *Generator) Run(lowLeft, upRight mapnik.Coord, minZ, maxZ uint64, name s
 	ll0 := [2]float64{lowLeft.X, upRight.Y}
 	ll1 := [2]float64{upRight.X, lowLeft.Y}
 
-	for z := minZ; z <= (maxZ + 1); z++ {
+	for z := minZ; z <= maxZ; z++ {
 		px0 := fromLLtoPixel(ll0, z)
 		px1 := fromLLtoPixel(ll1, z)
-		ensureDirExists(fmt.Sprintf("%s/%d", g.TileDir,z))
 
-		for x := uint64(px0[0] / 256.0); x <= uint64(px1[0]/256.0)+1; x++ {
-			if (x < 0) || (float64(x) >= math.Pow(float64(2),float64(z))){
-                continue
-			}
-			ensureDirExists(fmt.Sprintf("%s/%d/%d", g.TileDir, z, x))
-			
+		ensureDirExists(fmt.Sprintf("%s/%d", g.TileDir,z))
+		for x := uint64(px0[0] / 256.0); x <= uint64(px1[0]/256.0); x++ {
+			ensureDirExists(fmt.Sprintf("%s/%d/%d", g.TileDir,z, x))
 			for y := uint64(px0[1] / 256.0); y <= uint64(px1[1]/256.0); y++ {
-				if (y < 0) || (float64(y) >= math.Pow(float64(2),float64(z))){
-                	continue
-				}
-				c <- TileCoord{x, (uint64((math.Pow(float64(2),float64(z))-float64(1)) - float64(y))), z, false, "", g.TileDir}
+				c <- TileCoord{x, y, z, false, "", g.TileDir}
 			}
 		}
 	}
 	close(c)
-	log.Println("Done job", name)
+	log.Println("Finished job : ", name)
 	for i := 0; i < g.Threads; i++ {
 		<-q
 	}
