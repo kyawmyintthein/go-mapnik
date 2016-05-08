@@ -20,7 +20,7 @@ var gp struct {
 
 func init() {
 	c := 256.0
-	for d := 0; d < 30; d++ {
+	for d := uint64(0); d < 30; d++ {
 		e := c / 2
 		gp.Bc = append(gp.Bc, c/360.0)
 		gp.Cc = append(gp.Cc, c/(2*math.Pi))
@@ -30,11 +30,29 @@ func init() {
 	}
 }
 
+func round(val float64, roundOn float64, places int ) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return
+}
+
+
 func fromLLtoPixel(ll [2]float64, zoom uint64) [2]float64 {
 	d := gp.zc[zoom]
-	e := math.Trunc((d[0] + ll[0]*gp.Bc[zoom]) + 0.5)
+	//round function
+	e := round(d[0] + ll[0] * gp.Bc[zoom],.5, 0)
+	// e := math.Trunc((d[0] + ll[0]*gp.Bc[zoom]) + 0.5)
 	f := minmax(math.Sin(ll[1]*math.Pi/180.0), -0.9999, 0.9999)
-	g := math.Trunc((d[1] + 0.5*math.Log((1+f)/(1-f))*-gp.Cc[zoom]) + 0.5)
+	g := round(d[1] + 0.5*math.Log((1+f)/(1-f))*-gp.Cc[zoom],.5, 0)
+	//g := math.Trunc((d[1] + 0.5*math.Log((1+f)/(1-f))*-gp.Cc[zoom]) + 0.5)
 	return [2]float64{e, g}
 }
 
